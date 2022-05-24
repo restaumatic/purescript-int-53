@@ -65,11 +65,11 @@ import Prelude
     , (==), ($), (<>), (>), (<), negate, not, (<<<), (||), identity, (>>>)
     )
 
-import Math as Math
-import Global (readFloat, isNaN)
+import Data.Number as Number
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Int (toNumber, floor) as Int
 import Data.String (Pattern(..), stripSuffix)
+import Control.Monad ((<=<))
 
 
 -- Internally, an Int53 is a newtype over a `Number`. We implement the various
@@ -136,7 +136,7 @@ instance euclideanRingInt53 :: EuclideanRing Int53 where
     -- https://github.com/rgrempel/purescript-int-53/issues/7#issuecomment-275545674
     degree = abs >>> toInt
     div (Int53 a) (Int53 b) = truncate $ div a b
-    mod (Int53 a) (Int53 b) = Int53 $ Math.(%) a b
+    mod (Int53 a) (Int53 b) = Int53 $ Number.(%) a b
 
 
 derive instance eqInt53 :: Eq Int53
@@ -189,7 +189,7 @@ unsafeClamp a =
 -- |     truncate (1.0e65) == top
 -- |     truncate (-1.0e65) == bottom
 truncate :: Number -> Int53
-truncate = unsafeClamp <<< Math.trunc
+truncate = unsafeClamp <<< Number.trunc
 
 
 -- | Convert a `Number` to an `Int53`, by taking the closest integer equal to or
@@ -202,7 +202,7 @@ truncate = unsafeClamp <<< Math.trunc
 -- |     floor (1.0e65) == top
 -- |     floor (-1.0e65) == bottom
 floor :: Number -> Int53
-floor = unsafeClamp <<< Math.floor
+floor = unsafeClamp <<< Number.floor
 
 
 -- | Convert a `Number` to an `Int53`, by taking the closest integer equal to or
@@ -215,7 +215,7 @@ floor = unsafeClamp <<< Math.floor
 -- |     ceil (1.0e65) == top
 -- |     ceil (-1.0e65) == bottom
 ceil :: Number -> Int53
-ceil = unsafeClamp <<< Math.ceil
+ceil = unsafeClamp <<< Number.ceil
 
 
 -- | Convert a `Number` to an `Int53`, by taking the nearest integer to the
@@ -228,24 +228,24 @@ ceil = unsafeClamp <<< Math.ceil
 -- |     round (1.0e65) == top
 -- |     round (-1.0e65) == bottom
 round :: Number -> Int53
-round = unsafeClamp <<< Math.round
+round = unsafeClamp <<< Number.round
 
 
 -- | Creates an `Int53` from a `Number` value. The number must already be an
 -- | integer and fall within the valid range of values for the `Int53` type.
 -- | Otherwise, `Nothing` is returned.
 -- |
--- |     fromNumber Global.nan == Nothing
+-- |     fromNumber Data.Number.nan == Nothing
 -- |     fromNumber 2.5 == Nothing
 -- |     fromNumber 1.0e65 == Nothing
 -- |     fromNumber (-1.0e65) == Nothing
 -- |     fromNumber 27.0 == Just (fromInt 27)
 fromNumber :: Number -> Maybe Int53
 fromNumber a =
-    if isNaN a || a > topFloat || a < bottomFloat
+    if Number.isNaN a || a > topFloat || a < bottomFloat
         then Nothing
         else
-            if Math.floor a == a
+            if Number.floor a == a
                 then Just $ Int53 a
                 else Nothing
 
@@ -267,7 +267,7 @@ toNumber (Int53 a) = a
 -- |     fromString "27.0" == Just (fromInt 27)
 -- |     fromString "27" == Just (fromInt 27)
 fromString :: String -> Maybe Int53
-fromString = fromNumber <<< readFloat
+fromString = fromNumber <=< Number.fromString
 
 
 -- | Converts an `Int53` to a `String`.
@@ -306,7 +306,7 @@ toInt (Int53 a) =
 -- |     even (fromInt 0) == true
 -- |     even (fromInt 1) == false
 even :: Int53 -> Boolean
-even (Int53 a) = Math.(%) a 2.0 == 0.0
+even (Int53 a) = Number.(%) a 2.0 == 0.0
 
 
 -- | The negation of `even`.
@@ -329,7 +329,7 @@ pow :: Int53 -> Int53 -> Int53
 pow (Int53 base) (Int53 exponent) =
     if exponent < 0.0
         then Int53 0.0
-        else unsafeClamp $ Math.pow base exponent
+        else unsafeClamp $ Number.pow base exponent
 
 
 -- | Takes the absolute value.
@@ -338,7 +338,7 @@ pow (Int53 base) (Int53 exponent) =
 -- |     abs (fromInt (-2)) == (fromInt 2)
 -- |     abs (fromInt 0) == (fromInt 0)
 abs :: Int53 -> Int53
-abs (Int53 i) = Int53 $ Math.abs i
+abs (Int53 i) = Int53 $ Number.abs i
 
 
 -- | A class which allows a function to accept eitner an `Int` or an `Int53`,

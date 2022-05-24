@@ -4,3 +4,5 @@
 /output/
 /.psci*
 /docs/
+.purs-repl
+.spago/

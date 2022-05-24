@@ -5,8 +5,8 @@ node_js: 7
 env:
   - PATH=./node_modules/.bin:$PATH
 install:
-  - npm install purescript pulp bower purescript-psa
-  - bower install
+  - npm install purescript spago bower purescript-psa
+  - spago install
 script:
-  - pulp build -- --censor-lib
-  - pulp test
+  - spago build --purs-args '--censor-lib'
+  - spago test
